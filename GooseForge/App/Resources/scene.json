@@ -1,0 +1,86 @@
+{
+  "entities" : [
+    {
+      "metallic" : 0,
+      "baseColorTextureMap" : "forrest_diff",
+      "scale" : [
+        2.1898186,
+        1,
+        2.682972
+      ],
+      "roughnessTextureMap" : "forrest_rough",
+      "aoTextureMap" : "forrest_ao",
+      "model" : "primitive:plane",
+      "name" : "Entity_6",
+      "opacity" : 1,
+      "normalTextureMap" : "forrest_nor",
+      "ambientOcclusion" : 1,
+      "position" : [
+        53.032604,
+        175.77498,
+        81.320946
+      ],
+      "rotation" : [
+        -0,
+        0,
+        0
+      ],
+      "roughness" : 0.5,
+      "tiling" : 5
+    },
+    {
+      "ambientOcclusion" : 1,
+      "model" : "primitive:sphere",
+      "name" : "Entity_3",
+      "scale" : [
+        1,
+        1,
+        1
+      ],
+      "metallic" : 0,
+      "aoTextureMap" : "rusty_ao",
+      "position" : [
+        54.84294,
+        178.43321,
+        80.61449
+      ],
+      "opacity" : 1,
+      "baseColorTextureMap" : "rusty_diff",
+      "tiling" : 5,
+      "rotation" : [
+        -0,
+        0,
+        0
+      ],
+      "roughnessTextureMap" : "rusty_rough",
+      "metalicTextureMap" : "rusty_metal",
+      "normalTextureMap" : "rusty_nor",
+      "roughness" : 0.5
+    }
+  ],
+  "camera" : {
+    "name" : "player",
+    "position" : [
+      52.858753,
+      179.77934,
+      82.09282
+    ],
+    "rotation" : [
+      -0.6212618,
+      -29.726488,
+      0
+    ]
+  },
+  "version" : 1,
+  "lights" : [
+      {
+        "name": "sun",
+        "type": "sun",
+        "position": [0, 15, -30],
+        "color": [0.949, 1.0, 0.863],
+        "intensity": 1.0,
+        "radius": 1.0,
+        "castsShadows": true
+      },
+  ]
+}
