@@ -73,6 +73,7 @@ typedef enum {
     LightBuffer = 13,
     MaterialBuffer = 14,
     EntityIDBuffer = 15,
+    JointBuffer = 16,
     ColorBuffer = 20
 } BufferIndices;
 
@@ -81,7 +82,9 @@ typedef enum {
     Normal = 1,
     UV = 2,
     Tangent = 3,
-    Bitangent = 4
+    Bitangent = 4,
+    Joints = 6,
+    Weights = 7
 } Attributes;
 
 typedef enum {

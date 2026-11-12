@@ -27,6 +27,12 @@ enum PipelineStates {
         return pipelineState
     }
     
+    static func makeFunctionConstants(hasSkeleton: Bool) -> MTLFunctionConstantValues {
+        let functionConstants = MTLFunctionConstantValues()
+        var property = hasSkeleton
+        functionConstants.setConstantValue(&property, type: .bool, index: 0)
+        return functionConstants
+    }
     
     static func createShadowPSO() -> MTLRenderPipelineState {
         let vertexFunction = Renderer.library?.makeFunction(name: "vertex_depth")
@@ -39,8 +45,9 @@ enum PipelineStates {
         return createPSO(descriptor: pipelineDescriptor)
     }
     
-    static func createGBufferPSO() -> MTLRenderPipelineState {
-        let vertexFunction = Renderer.library?.makeFunction(name: "vertex_main")
+    static func createGBufferPSO(hasSkeleton: Bool = false) -> MTLRenderPipelineState {
+        let functionConstants = makeFunctionConstants(hasSkeleton: hasSkeleton)
+        let vertexFunction = try? Renderer.library?.makeFunction(name: "vertex_main",  constantValues: functionConstants)
         let fragmentFunction = Renderer.library?.makeFunction(name: "fragment_gBuffer")
         
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
@@ -128,9 +135,10 @@ enum PipelineStates {
         return createPSO(descriptor: pipelineDescriptor)
     }
     
-    static func createForwardTransparentTiledPSO() -> MTLRenderPipelineState {
-        let vertexFunction   = Renderer.library?.makeFunction(name: "vertex_main")
-        let fragmentFunction = Renderer.library?.makeFunction(name: "fragment_transparent") 
+    static func createForwardTransparentTiledPSO(hasSkeleton: Bool) -> MTLRenderPipelineState {
+        let functionConstants = makeFunctionConstants(hasSkeleton: hasSkeleton)
+        let vertexFunction = try? Renderer.library?.makeFunction(name: "vertex_main",  constantValues: functionConstants)
+        let fragmentFunction = Renderer.library?.makeFunction(name: "fragment_transparent")
         
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
         pipelineDescriptor.vertexFunction   = vertexFunction
@@ -196,7 +204,25 @@ enum PipelineStates {
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
         pipelineDescriptor.vertexFunction   = vertexFunction
         pipelineDescriptor.fragmentFunction = fragmentFunction
-        pipelineDescriptor.vertexDescriptor = .defaultLayout
+        
+        let vd = MTLVertexDescriptor()
+        
+        // Position (индекс 0)
+        vd.attributes[0].format = .float3
+        vd.attributes[0].offset = 0
+        vd.attributes[0].bufferIndex = 0
+        
+        // Color (индекс 1)
+        vd.attributes[1].format = .float3
+        // ВАЖНО: В Swift SIMD3<Float> занимает 16 байт из-за выравнивания!
+        // Поэтому цвет начинается не с 12-го, а с 16-го байта.
+        vd.attributes[1].offset = 16
+        vd.attributes[1].bufferIndex = 0
+        
+        // Общий размер одной вершины в Swift = 32 байта (два SIMD3 по 16 байт)
+        vd.layouts[0].stride = 32
+        
+        pipelineDescriptor.vertexDescriptor = vd
         
         pipelineDescriptor.colorAttachments[0].pixelFormat = Renderer.viewColorPixelFormat
         pipelineDescriptor.setGBufferPixelFormat()

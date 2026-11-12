@@ -15,6 +15,7 @@ struct TiledRenderPass: RenderPass {
     
     var descriptor:             MTLRenderPassDescriptor?
     var gBufferPSO:             MTLRenderPipelineState
+    var skinnedGBufferPSO:      MTLRenderPipelineState
     var iblPSO:                 MTLRenderPipelineState
     var sunLightPSO:            MTLRenderPipelineState
     var pointLightPSO:          MTLRenderPipelineState
@@ -32,10 +33,11 @@ struct TiledRenderPass: RenderPass {
     var overlays: [TiledPassOverlay] = []
     
     init(view: MTKView) {
-        gBufferPSO              = PipelineStates.createGBufferPSO()
+        gBufferPSO              = PipelineStates.createGBufferPSO(hasSkeleton: false)
+        skinnedGBufferPSO       = PipelineStates.createGBufferPSO(hasSkeleton: true)
         iblPSO                  = PipelineStates.createIBL_PSO()
         pointLightPSO           = PipelineStates.createPointLightPSO()
-        transparentForwardPSO   = PipelineStates.createForwardTransparentTiledPSO()
+        transparentForwardPSO   = PipelineStates.createForwardTransparentTiledPSO(hasSkeleton: false)
         sunLightPSO             = PipelineStates.createDeferredSunPSO()
         
         depthStencilState               = Self.buildDepthStencilState()
@@ -148,7 +150,7 @@ struct TiledRenderPass: RenderPass {
     func drawGBufferRenderPass(renderEncoder: MTLRenderCommandEncoder, manager: EntityManager, scene: SceneManager, uniforms: Uniforms, params: Params) {
         var uniforms = uniforms
         var params   = params
-    
+        
         params.selectedEntityID = scene.selectedEntity.map { $0 + 1 } ?? 0
         
         renderEncoder.label = "Tiled G-buffer render pass"
@@ -157,6 +159,7 @@ struct TiledRenderPass: RenderPass {
         if let shadowTexture { renderEncoder.setFragmentTexture(shadowTexture, index: ShadowTexture.index) }
         
         for (entity, meshComponent, materialComponent) in manager.query(MeshComponent.self, MaterialComponent.self) {
+            if manager.getComponent(for: entity) as SkinComponent? != nil { continue }
             
             var entityId = manager.rootEntity(for: entity).map { UInt32($0) + 1 } ?? (entity + 1)
             params.tiling = materialComponent.tiling
@@ -190,6 +193,48 @@ struct TiledRenderPass: RenderPass {
                                                 indexBuffer: submesh.indexBuffer,
                                                 indexBufferOffset: submesh.indexBufferOffset)
             
+        }
+        
+        renderEncoder.setRenderPipelineState(skinnedGBufferPSO)
+        
+        // 2. Ищем ТОЛЬКО тех, у кого есть SkinComponent
+        for (entity, meshComponent, materialComponent, skinComponent) in manager.query(MeshComponent.self, MaterialComponent.self, SkinComponent.self) {
+            
+            // 3. ОТПРАВЛЯЕМ БУФЕР С МАТРИЦАМИ КОСТЕЙ НА GPU!
+            renderEncoder.setVertexBuffer(skinComponent.jointMatrixPaletteBuffer, offset: 0, index: JointBuffer.index)
+            
+            // 4. Дальше код точно такой же, как в первом проходе
+            var entityId = manager.rootEntity(for: entity).map { UInt32($0) + 1 } ?? (entity + 1)
+            params.tiling = materialComponent.tiling
+            uniforms.modelMatrix = manager.worldMatrix(for: entity)
+            uniforms.normalMatrix = uniforms.modelMatrix.upperLeft
+            
+            renderEncoder.setVertexBytes  (&uniforms, length: MemoryLayout<Uniforms>.stride, index: UniformsBuffer.index)
+            renderEncoder.setFragmentBytes(&params,   length: MemoryLayout<Params>.stride,   index: ParamsBuffer.index)
+            renderEncoder.setFragmentBytes(&entityId, length: MemoryLayout<UInt32>.stride,   index: EntityIDBuffer.index)
+            
+            let meshes = meshComponent.meshes
+            for (index, vertexBuffer) in meshes.vertexBuffers.enumerated() {
+                renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: index)
+            }
+            
+            let submesh = meshes.submeshes[meshComponent.submeshesIndex]
+            // (Анимации обычно непрозрачные, так что проверку на прозрачность можно опустить или оставить)
+            
+            var material = materialComponent.material
+            renderEncoder.setFragmentBytes(&material, length: MemoryLayout<Material>.stride, index: MaterialBuffer.index)
+            renderEncoder.setFragmentTexture(materialComponent.textures.baseColor, index: BaseColor.index)
+            renderEncoder.setFragmentTexture(materialComponent.textures.roughness, index: RoughnessTexture.index)
+            renderEncoder.setFragmentTexture(materialComponent.textures.normal, index: NormalTexture.index)
+            renderEncoder.setFragmentTexture(materialComponent.textures.metallic, index: MetallicTexture.index)
+            renderEncoder.setFragmentTexture(materialComponent.textures.ambientOcclusion, index: AOTexture.index)
+            renderEncoder.setFragmentTexture(materialComponent.textures.opacity, index: OpacityTexture.index)
+            
+            renderEncoder.drawIndexedPrimitives(type: .triangle,
+                                                indexCount: submesh.indexCount,
+                                                indexType: submesh.indexType,
+                                                indexBuffer: submesh.indexBuffer,
+                                                indexBufferOffset: submesh.indexBufferOffset)
         }
     }
     

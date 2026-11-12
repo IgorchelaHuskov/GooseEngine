@@ -8,9 +8,9 @@
 import MetalKit
 
 extension MTLVertexDescriptor {
-  static var defaultLayout: MTLVertexDescriptor? {
-    MTKMetalVertexDescriptorFromModelIO(.defaultLayout)
-  }
+    static var defaultLayout: MTLVertexDescriptor? {
+        MTKMetalVertexDescriptorFromModelIO(.defaultLayout)
+    }
 }
 
 extension MDLVertexDescriptor {
@@ -30,6 +30,23 @@ extension MDLVertexDescriptor {
             offset: offset,
             bufferIndex: VertexBuffer.index)
         offset += MemoryLayout<float3>.stride
+        
+        vertexDescriptor.attributes[Joints.index] =
+        MDLVertexAttribute(
+            name: MDLVertexAttributeJointIndices,
+            format: .uShort4,
+            offset: offset,
+            bufferIndex: VertexBuffer.index)
+        offset += MemoryLayout<ushort>.stride * 4
+        
+        vertexDescriptor.attributes[Weights.index] =
+        MDLVertexAttribute(
+            name: MDLVertexAttributeJointWeights,
+            format: .float4,
+            offset: offset,
+            bufferIndex: VertexBuffer.index)
+        offset += MemoryLayout<float4>.stride
+        
         vertexDescriptor.layouts[VertexBuffer.index] = MDLVertexBufferLayout(stride: offset)
         
         vertexDescriptor.attributes[UV.index] = MDLVertexAttribute(
@@ -40,17 +57,17 @@ extension MDLVertexDescriptor {
         vertexDescriptor.layouts[UVBuffer.index] = MDLVertexBufferLayout(stride: MemoryLayout<float2>.stride)
         
         vertexDescriptor.attributes[Tangent.index] = MDLVertexAttribute(
-                name: MDLVertexAttributeTangent,
-                format: .float3,
-                offset: 0,
-                bufferIndex: TangentBuffer.index)
+            name: MDLVertexAttributeTangent,
+            format: .float3,
+            offset: 0,
+            bufferIndex: TangentBuffer.index)
         vertexDescriptor.layouts[TangentBuffer.index] = MDLVertexBufferLayout(stride: MemoryLayout<float3>.stride)
-
+        
         vertexDescriptor.attributes[Bitangent.index] = MDLVertexAttribute(
-                name: MDLVertexAttributeBitangent,
-                format: .float3,
-                offset: 0,
-                bufferIndex: BitangentBuffer.index)
+            name: MDLVertexAttributeBitangent,
+            format: .float3,
+            offset: 0,
+            bufferIndex: BitangentBuffer.index)
         vertexDescriptor.layouts[BitangentBuffer.index] = MDLVertexBufferLayout(stride: MemoryLayout<float3>.stride)
         
         return vertexDescriptor

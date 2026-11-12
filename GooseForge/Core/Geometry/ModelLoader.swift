@@ -38,9 +38,30 @@ class ModelLoader {
         let rootEntity = manager.createEntity()
         manager.addComponent(component: TransformComponent(), to: rootEntity)
         
+        // Loading the Skeleton
+        let skeletons = asset.childObjects(of: MDLSkeleton.self) as? [MDLSkeleton] ?? []
+        if let skeleton = Skeleton(mdlSkeleton: skeletons.first) {
+            let skeletonComponent = SkeletonComponent(parentIndices: skeleton.parentIndices,
+                                                      jointPaths: skeleton.jointPaths,
+                                                      bindTransforms: skeleton.bindTransforms,
+                                                      restTransforms: skeleton.restTransforms,
+                                                      currentPose: skeleton.currentPose)
+            
+            manager.addComponent(component: skeletonComponent, to: rootEntity)
+        }
+        
+        // Loading the Animation
+        let assetAnimation = asset.animations.objects.compactMap { $0 as? MDLPackedJointAnimation }
+        for animation in assetAnimation {
+            let animationClip = AnimationClip(animation: animation)
+            let animationComponent = AnimationComponent(clip: animationClip)
+            manager.addComponent(component: animationComponent, to: rootEntity)
+        }
+        
         // 2. Каждый submesh — ребёнок корня
         for (mdlMesh, mtkMesh) in zip(mdlMeshes, mtkMeshes) {
             let mesh = Mesh(mdlMesh: mdlMesh, mtkMesh: mtkMesh, device: device)
+            
             for index in 0..<mesh.submeshes.count {
                 let partEntity = manager.createEntity()
                 let partTextures = mesh.submeshes[index].textures
@@ -52,6 +73,17 @@ class ModelLoader {
                 manager.addComponent(component: MeshComponent(meshes: mesh, submeshesIndex: index, modelName: name), to: partEntity)
                 manager.addComponent(component: materialComponent, to: partEntity)
                 manager.addComponent(component: TransformComponent(), to: partEntity)
+        
+                // Loading the Skinning Data
+                let animationBindComponent = mdlMesh.componentConforming(to: MDLComponent.self) as? MDLAnimationBindComponent
+                let skeletonComp = manager.getComponent(for: rootEntity) as SkeletonComponent?
+                if let skin = Skin(animationBindComponent: animationBindComponent, skeleton: skeletonComp) {
+                    let skinComponent = SkinComponent(skinToSkeletonMap: skin.skinToSkeletonMap,
+                                                      jointMatrixPaletteBuffer: skin.jointMatrixPaletteBuffer)
+                    
+                    manager.addComponent(component: skinComponent, to: partEntity)
+                }
+                
                 manager.attach(child: partEntity, to: rootEntity)
             }
         }
