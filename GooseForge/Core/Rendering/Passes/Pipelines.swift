@@ -27,21 +27,42 @@ enum PipelineStates {
         return pipelineState
     }
     
-    static func makeFunctionConstants(hasSkeleton: Bool) -> MTLFunctionConstantValues {
+    static func makeFunctionConstants(hasSkeleton: Bool = false) -> MTLFunctionConstantValues {
         let functionConstants = MTLFunctionConstantValues()
         var property = hasSkeleton
         functionConstants.setConstantValue(&property, type: .bool, index: 0)
         return functionConstants
     }
     
-    static func createShadowPSO() -> MTLRenderPipelineState {
-        let vertexFunction = Renderer.library?.makeFunction(name: "vertex_depth")
+    static func createToneMappingPSO() -> MTLRenderPipelineState {
+        let vertexFunction = Renderer.library?.makeFunction(name: "vertex_quad")
+        let fragmentFunction = Renderer.library?.makeFunction(name: "fragment_tonemap")
+        
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
         pipelineDescriptor.vertexFunction = vertexFunction
+        pipelineDescriptor.fragmentFunction = fragmentFunction
+        pipelineDescriptor.colorAttachments[0].pixelFormat = Renderer.viewColorPixelFormat
+        
+        // Нам нужны все форматы, чтобы пройти валидацию (как в других PSO)
+        pipelineDescriptor.setGBufferPixelFormat()
+        pipelineDescriptor.colorAttachments[RenderTargetEntityID.index].pixelFormat = .r32Uint
+        pipelineDescriptor.colorAttachments[RenderTargetEntityID.index].writeMask = []
+        pipelineDescriptor.depthAttachmentPixelFormat = .depth32Float_stencil8
+        pipelineDescriptor.stencilAttachmentPixelFormat = .depth32Float_stencil8
+        
+        return createPSO(descriptor: pipelineDescriptor)
+    }
+    
+    static func createShadowPSO(hasSkeleton: Bool = false) -> MTLRenderPipelineState {
+        let functionConstants = makeFunctionConstants(hasSkeleton: hasSkeleton)
+        let vertexFunction = try? Renderer.library?.makeFunction(name: "vertex_depth", constantValues: functionConstants)
+        let fragmentFunction = Renderer.library?.makeFunction(name: "fragment_shadow")
+        let pipelineDescriptor = MTLRenderPipelineDescriptor()
+        pipelineDescriptor.vertexFunction = vertexFunction
+        pipelineDescriptor.fragmentFunction = fragmentFunction
         pipelineDescriptor.colorAttachments[0].pixelFormat = .invalid
         pipelineDescriptor.depthAttachmentPixelFormat = Renderer.viewDepthPixelFormat
         pipelineDescriptor.vertexDescriptor = .defaultLayout
-        
         return createPSO(descriptor: pipelineDescriptor)
     }
     
@@ -135,7 +156,7 @@ enum PipelineStates {
         return createPSO(descriptor: pipelineDescriptor)
     }
     
-    static func createForwardTransparentTiledPSO(hasSkeleton: Bool) -> MTLRenderPipelineState {
+    static func createForwardTransparentTiledPSO(hasSkeleton: Bool = false) -> MTLRenderPipelineState {
         let functionConstants = makeFunctionConstants(hasSkeleton: hasSkeleton)
         let vertexFunction = try? Renderer.library?.makeFunction(name: "vertex_main",  constantValues: functionConstants)
         let fragmentFunction = Renderer.library?.makeFunction(name: "fragment_transparent")

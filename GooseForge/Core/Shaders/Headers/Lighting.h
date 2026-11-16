@@ -77,4 +77,11 @@ float3 computeAmbient(
   constant Params &params,
   Material material);
 
+float3 enhanceColor(
+  float3 color,
+  float contrast,
+  float saturation);
+
+float3 acesToneMapping(float3 x);
+
 #endif /* Lighting_h */

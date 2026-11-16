@@ -36,7 +36,7 @@ fragment half4 fragment_skybox(VertexOut in [[stage_in]],
                                constant Params &params [[buffer(ParamsBuffer)]],
                                texturecube<half> cubeTexture [[texture(SkyboxTexture)]])
 {
-   constexpr sampler default_sampler(filter::linear);
-   half4 color = cubeTexture.sample(default_sampler, in.textureCoordinates);
-   return color;
+    constexpr sampler default_sampler(filter::linear);
+    half4 color = cubeTexture.sample(default_sampler, in.textureCoordinates);
+    return color  ;
 }

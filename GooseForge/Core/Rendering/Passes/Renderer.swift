@@ -74,7 +74,7 @@ class Renderer: NSObject {
             uniforms.shadowProjectionMatrix = shadowComponent.projectionMatrix
             uniforms.shadowViewMatrix = float4x4(eye: shadowTransform.position,
                                                  target: shadowComponent.center,
-                                                 up: [0, 1, 0])
+                                                 up: shadowComponent.up)
             params.shadowsEnabled = true
         } else {
             uniforms.shadowProjectionMatrix = .identity

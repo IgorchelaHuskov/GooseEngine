@@ -10,17 +10,32 @@ import MetalKit
 enum TextureController {
     static var textures: [String: MTLTexture] = [:]
     
-    static func loadTexture(texture: MDLTexture, name: String, device: MTLDevice) -> MTLTexture? {
-        if let texture = textures[name] {
-            return texture
+    static func loadTexture(texture: MDLTexture, name: String, device: MTLDevice, isSRGB: Bool) -> MTLTexture? {
+        // 1. Проверяем кэш
+        if let cached = textures[name] {
+            return cached
         }
+        
         let textureLoader = MTKTextureLoader(device: device)
-        let textureLoaderOptions: [MTKTextureLoader.Option: Any] = [.origin: MTKTextureLoader.Origin.bottomLeft,
-                                                                    .textureUsage: MTLTextureUsage.pixelFormatView.rawValue | MTLTextureUsage.shaderRead.rawValue,
-                                                                    .generateMipmaps: true]
-        let texture = try? textureLoader.newTexture(texture: texture, options: textureLoaderOptions)
-        textures[name] = texture
-        return texture
+        let options: [MTKTextureLoader.Option: Any] = [
+            .origin: MTKTextureLoader.Origin.bottomLeft,
+            .textureUsage: MTLTextureUsage.pixelFormatView.rawValue | MTLTextureUsage.shaderRead.rawValue,
+            .generateMipmaps: true
+            // .SRGB мы сюда НЕ пишем, он не работает для MDLTexture!
+        ]
+        
+        var mtlTexture = try? textureLoader.newTexture(texture: texture, options: options)
+        
+        // 2. Принудительно делаем текстуру цветной (sRGB)
+        print("Texture \(name) format before: \(mtlTexture?.pixelFormat.rawValue ?? 1)")
+        if isSRGB, mtlTexture?.pixelFormat == .rgba8Unorm {
+            mtlTexture = mtlTexture?.makeTextureView(pixelFormat: .rgba8Unorm_srgb)
+            print("Texture \(name) converted to sRGB")
+        }
+        
+        // 3. Кэшируем
+        textures[name] = mtlTexture
+        return mtlTexture
     }
     
     

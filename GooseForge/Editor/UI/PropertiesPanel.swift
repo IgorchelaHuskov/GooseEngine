@@ -21,6 +21,7 @@ struct PropertiesPanel: View {
                     positionSection(entity: selected)
                     rotationSection(entity: selected)
                     scaleSection(entity: selected)
+                    tilingSection(entity: selected)
                     
                     Divider().padding(.vertical, 8)
                     
@@ -151,6 +152,29 @@ struct PropertiesPanel: View {
                 FloatInput(label: "Z", entity: entity, state: state,
                            get: { $0.scaleVec.z },
                            set: { t, v in t.scaleVec.z = max(0.001, v) })
+            }
+        }
+    }
+    
+    // В PropertiesPanel.swift, внутри body, после scaleSection:
+    private func tilingSection(entity: Entity) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Texture Tiling").font(.caption).bold()
+            HStack(spacing: 6) {
+                TextField("", value: Binding(
+                    get: {
+                        let mat = state.entityManager.getComponent(for: entity) as MaterialComponent?
+                        return Int(mat?.tiling ?? 1)
+                    },
+                    set: { newValue in
+                        if var mat = state.entityManager.getComponent(for: entity) as MaterialComponent? {
+                            mat.tiling = UInt32(max(1, newValue))
+                            state.entityManager.addComponent(component: mat, to: entity)
+                        }
+                    }
+                ), format: .number)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 60)
             }
         }
     }

@@ -9,16 +9,6 @@ import MetalKit
 
 struct SceneLighting {
     
-    let sunlight: Light = {
-        var light = Self.buildDefaultLight()
-        light.position = [0, 10, -30]
-        light.color = [0.949, 1.0, 0.863]
-        light.intensity = 1.0
-        light.radius = 1
-        return light
-    }()
-    
-    
     static func buildDefaultLight() -> Light {
         var light = Light()
         light.position = [0, 0, 0]

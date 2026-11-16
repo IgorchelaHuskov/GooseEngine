@@ -12,6 +12,7 @@ struct MaterialComponent: Component {
     var material: Material = Material()
     var tiling: UInt32 = 1
     var isTransparent: Bool = false
+    var isAlphaTested: Bool = false
     
     var baseColorTextureName:   String? = nil
     var normalTextureName:      String? = nil

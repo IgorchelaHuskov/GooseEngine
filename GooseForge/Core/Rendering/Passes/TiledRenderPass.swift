@@ -20,6 +20,7 @@ struct TiledRenderPass: RenderPass {
     var sunLightPSO:            MTLRenderPipelineState
     var pointLightPSO:          MTLRenderPipelineState
     var transparentForwardPSO:  MTLRenderPipelineState
+    var toneMappingPSO:         MTLRenderPipelineState
     
     var albedoTexture:      MTLTexture?
     var normalTexture:      MTLTexture?
@@ -39,6 +40,7 @@ struct TiledRenderPass: RenderPass {
         pointLightPSO           = PipelineStates.createPointLightPSO()
         transparentForwardPSO   = PipelineStates.createForwardTransparentTiledPSO(hasSkeleton: false)
         sunLightPSO             = PipelineStates.createDeferredSunPSO()
+        toneMappingPSO          = PipelineStates.createToneMappingPSO()
         
         depthStencilState               = Self.buildDepthStencilState()
         lightingDepthStencilState       = Self.buildLightingDepthStencilState()
@@ -140,6 +142,11 @@ struct TiledRenderPass: RenderPass {
         }
         
         drawTransparentPass(renderEncoder: renderEncoder, manager: manager, scene: scene, uniforms: uniforms, params: params)
+        
+        renderEncoder.pushDebugGroup("Tone Mapping")
+        renderEncoder.setRenderPipelineState(toneMappingPSO)
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        renderEncoder.popDebugGroup()
         
         for overlay in overlays {
             overlay.render(encoder: renderEncoder, scene: scene, uniforms: uniforms, params: params)

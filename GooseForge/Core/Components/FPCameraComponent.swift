@@ -14,7 +14,7 @@ struct FPCameraComponent: Component {
     var aspect: Float = 1.0
     var fov: Float = Float(70).degreesToRadians
     var near: Float = 0.1
-    var far: Float = 20
+    var far: Float = 400
 
     /// Состояние управления — источник правды для ориентации.
     /// pitch клампится ±π/2 (в InputSystem), yaw свободный.

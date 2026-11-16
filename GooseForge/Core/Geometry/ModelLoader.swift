@@ -103,8 +103,8 @@ class ModelLoader {
                               allocator: allocator)
             
         case .plane:
-            mdlMesh = MDLMesh(planeWithExtent: [10, 0, 10],
-                              segments: [10, 10],
+            mdlMesh = MDLMesh(planeWithExtent: [1, 0, 1],
+                              segments: [4, 4],
                               geometryType: .triangles,
                               allocator: allocator)
         case .sphere:
@@ -133,8 +133,8 @@ class ModelLoader {
         
         var defaultMaterial = Material()
         defaultMaterial.baseColor = float3(0.5, 0.5, 0.5)
-        defaultMaterial.roughness = 0.5
-        defaultMaterial.metallic = 0
+        defaultMaterial.roughness = 1
+        defaultMaterial.metallic = 0.0
         defaultMaterial.ambientOcclusion = 1.0
         defaultMaterial.opacity = 1.0 
         

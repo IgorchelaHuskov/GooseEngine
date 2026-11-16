@@ -67,16 +67,50 @@ float3 calculatePointDiffuse(Light light,
     return color;
 }
 
-float calculateShadow(float4 shadowPosition, depth2d<float> shadowTexture)
-{
-    // shadow calculation
+
+float calculateShadow(float4 shadowPosition, depth2d<float> shadowTexture) {
     float3 position = shadowPosition.xyz / shadowPosition.w;
     float2 xy = position.xy;
     xy = xy * 0.5 + 0.5;
     xy.y = 1 - xy.y;
-    constexpr sampler s(coord::normalized, filter::nearest, address::clamp_to_edge, compare_func:: less);
-    float shadow_sample = shadowTexture.sample(s, xy);
-    return (position.z > shadow_sample + 0.001) ? 0.0 : 1;
+    
+    // За пределами карты по X/Y ИЛИ за far-плоскостью по Z — без тени
+    if (xy.x < 0.0 || xy.x > 1.0 || xy.y < 0.0 || xy.y > 1.0 || position.z > 1.0) {
+        return 1.0;
+    }
+    
+    // NEAREST — не линейный! PCF-ядро даёт сглаживание, линейный только размывает
+    constexpr sampler s(coord::normalized, filter::nearest, address::clamp_to_edge);
+    
+    float2 dimensions = float2(shadowTexture.get_width(), shadowTexture.get_height());
+    float2 texelSize = 1.0 / dimensions;
+    
+    // Poisson-disk 8 сэмплов — качественнее, чем 3×3, за те же ~8 выборок
+    const float2 poisson[8] = {
+        float2(-0.94201624, -0.39906216),
+        float2( 0.94558609, -0.76890725),
+        float2(-0.09418410, -0.92938870),
+        float2( 0.34495938,  0.29387760),
+        float2(-0.91588581,  0.45771432),
+        float2(-0.81544232, -0.87912464),
+        float2(-0.38277543,  0.27676845),
+        float2( 0.97484398,  0.75648379),
+    };
+    // Радиус ядра в текселях. 1.5 — мягко, но не мыльно.
+    const float radius = 1.5;
+    // Bias — slope-scaled, см. ниже
+    const float baseBias = 0.0005;
+    
+    float shadow = 0.0;
+    for (int i = 0; i < 8; ++i) {
+        float2 offset = poisson[i] * texelSize * radius;
+        float mapDepth = shadowTexture.sample(s, xy + offset);
+        shadow += (position.z > mapDepth + baseBias) ? 0.0 : 1.0;
+    }
+    shadow /= 8.0;
+    
+    // Контраст: 0.15 — тень почти чёрная, 0.5 — как в туториале
+    return shadow; //mix(0.15, 1.0, shadow);
 }
 
 float G1V(float nDotV, float k)
@@ -119,6 +153,26 @@ float3 calculateSunSpecular(Light light,
     float k = alpha / 2.0f;
     vis = G1V(nDotL, k) * G1V(nDotV, k);
     
-    float3 specular = nDotL * D * F * vis * light.specularColor;
+    float3 specular = nDotL * D * F * vis * light.specularColor * light.color * light.intensity;
     return specular;
 }
+
+float3 enhanceColor(float3 color, float contrast, float saturation) {
+    // Contrast
+    color = (color - 0.5) * contrast + 0.5;
+    
+    // Saturation
+    float luminance = dot(color, float3(0.299, 0.587, 0.114));
+    color = mix(float3(luminance), color, saturation);
+    return color;
+}
+
+float3 acesToneMapping(float3 x) {
+    float a = 2.51;
+    float b = 0.03;
+    float c = 2.43;
+    float d = 0.59;
+    float e = 0.14;
+    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+

@@ -41,8 +41,9 @@ struct Skybox {
         if let textureName {
             skyTexture     = TextureController.loadCubeTexture(imageName: textureName)
             diffuseTexture = TextureController.loadCubeTexture(imageName: "irradiance.png")
-            brdfLut        = Renderer.buildBRDF()
         }
+        
+        brdfLut = Renderer.buildBRDF()
     }
     
     static func buildDepthStencilState() -> MTLDepthStencilState? {

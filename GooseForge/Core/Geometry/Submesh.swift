@@ -62,14 +62,22 @@ private extension MDLMaterial {
         if let property = property(with: semantic),
            property.type == .texture,
            let mdlTexture = property.textureSamplerValue?.texture {
-            var texture = TextureController.loadTexture(
+            
+            // ОПРЕДЕЛЯЕМ, НУЖЕН ЛИ SRGB:
+            // Только базовый цвет и свечение (emissive) являются цветом.
+            // Нормали, шероховатость, металличность и AO — это данные (Linear).
+            let isColorTexture = (semantic == .baseColor)
+            
+            let texture = TextureController.loadTexture(
                 texture: mdlTexture,
-                name: property.textureName, device: device)
-            if semantic == .baseColor,
-               texture?.pixelFormat == .rgba8Unorm {
-                texture = texture?.makeTextureView(pixelFormat: .rgba8Unorm_srgb)
-                TextureController.textures[property.textureName] = texture
-            }
+                name: property.textureName,
+                device: device,
+                isSRGB: isColorTexture
+            )
+            
+            // (Опционально) Если текстура BaseColor уже в правильном формате,
+            // можно не делать makeTextureView, как у тебя было раньше.
+            
             return texture
         }
         return nil

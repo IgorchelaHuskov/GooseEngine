@@ -169,7 +169,7 @@ fragment float4 fragment_IBL(
     
     float4 diffuse = skyboxDiffuse.sample(textureSampler, normal);
     
-    diffuse = mix(pow(diffuse, 0.2), diffuse, metallic);
+    diffuse = mix(pow(diffuse, 0.4), diffuse, metallic);
     color = diffuse * float4(baseColor, 1);
     
     constexpr sampler s(filter::linear, mip_filter::linear);
@@ -192,6 +192,7 @@ fragment float4 fragment_IBL(
         color.rgb += float3(1.0, 0.55, 0.1) * fresnel * 1.5 * selected;
     }
     
+    //color.rgb = enhanceColor(color.rgb, 1.1, 1.1);
     return color;
 }
 

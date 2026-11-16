@@ -45,7 +45,7 @@ class SceneManager {
                     : ModelLoader.loadPrimitive(type: .icosahedron, named: "icosahedron", manager: manager, device: device)
             } catch { print("⚠️ Scene load failed: \(error)") }
         }
-        systems = [InputSystem(), FPCameraSystem(), ShadowCameraSystem()]
+        systems = [InputSystem(), FPCameraSystem(), ShadowCameraSystem(), AnimationSystem()]
         rebuildLightBuffers(manager: manager, device: device)
     }
     
@@ -176,11 +176,15 @@ extension SceneManager {
     
     /// Возвращает список всех .usdz моделей в бандле
     func availableModels() -> [String] {
-        // Ищем файлы с расширением usdz во всех папках бандла
-        let paths = Bundle.main.paths(forResourcesOfType: "usdz", inDirectory: nil)
+        var names: [String] = []
         
-        // Извлекаем только имя файла (например, "house1.usdz") и сортируем
-        let names = paths.compactMap { URL(fileURLWithPath: $0).lastPathComponent }
+        // Ищем и USDZ, и USDA
+        let usdzPaths = Bundle.main.paths(forResourcesOfType: "usdz", inDirectory: nil)
+        let usdaPaths = Bundle.main.paths(forResourcesOfType: "usda", inDirectory: nil)
+        
+        let allPaths = usdzPaths + usdaPaths
+        names = allPaths.compactMap { URL(fileURLWithPath: $0).lastPathComponent }
+        
         return names.sorted()
     }
 }

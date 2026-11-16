@@ -34,14 +34,53 @@
 using namespace metal;
 
 #import "../Headers/Common.h"
+#import "../Headers/ShaderDefs.h"
 
-struct VertexIn {
-  float4 position [[attribute(0)]];
+struct ShadowOut {
+    float4 position [[position]];
+    float2 uv;
 };
 
-vertex float4 vertex_depth(const VertexIn in [[stage_in]],
-                           constant Uniforms &uniforms [[buffer(UniformsBuffer)]])
+constant bool hasSkeleton [[function_constant(0)]];
+
+vertex ShadowOut vertex_depth(
+    const VertexIn in [[stage_in]],
+    constant Uniforms &uniforms [[buffer(UniformsBuffer)]],
+    constant float4x4 *jointMatrices [[buffer(JointBuffer), function_constant(hasSkeleton)]])
 {
-    matrix_float4x4 mvp = uniforms.shadowProjectionMatrix * uniforms.shadowViewMatrix * uniforms.modelMatrix;
-    return mvp * in.position;
+    matrix_float4x4 mvp = uniforms.shadowProjectionMatrix
+                        * uniforms.shadowViewMatrix
+                        * uniforms.modelMatrix;
+
+    float4 position = in.position;
+    if (hasSkeleton) {
+        float4 weights = in.weights;
+        ushort4 joints = in.joints;
+        position = weights.x * (jointMatrices[joints.x] * position) +
+                   weights.y * (jointMatrices[joints.y] * position) +
+                   weights.z * (jointMatrices[joints.z] * position) +
+                   weights.w * (jointMatrices[joints.w] * position);
+    }
+
+    ShadowOut out;
+    out.position = mvp * position;
+    out.uv = in.uv;
+    return out;
+}
+
+fragment void fragment_shadow(
+    ShadowOut in [[stage_in]],
+    constant Params &params [[buffer(ParamsBuffer)]],
+    texture2d<float> baseColorTexture [[texture(BaseColor)]])
+{
+    // Если текстуры нет — alpha-test не нужен, всё отрисуется (это opaque)
+    if (is_null_texture(baseColorTexture) || !params.alphaTesting) {
+        return;   // depth запишется как обычно
+    }
+
+    constexpr sampler s(filter::linear, address::repeat);
+    float4 c = baseColorTexture.sample(s, in.uv * float(params.tiling));
+    if (c.a < 0.5) {
+        discard_fragment();   // ← не пишем depth — свет пройдёт сквозь
+    }
 }
