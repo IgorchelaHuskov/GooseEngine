@@ -10,5 +10,10 @@ import Foundation
 struct AnimationComponent: Component {
     var currentTime: Float = 0
     var speed: Float = 1
-    var clip: AnimationClip
+    
+    // Храним ВСЕ клипы из файла (Idle, Walk, Run)
+    var clips: [String: AnimationClip] = [:]
+    
+    // Имя текущего проигрываемого клипа
+    var currentClipName: String = ""
 }

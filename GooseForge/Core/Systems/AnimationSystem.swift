@@ -18,14 +18,18 @@ struct AnimationSystem: System {
             var animationComponent = animComp
             var skeletonComponent = skelComp
             
-            animationComponent.currentTime += deltaTime * animationComponent.speed
-            let time = fmod(animationComponent.currentTime, animationComponent.clip.duration)
+            // 1. Получаем ТЕКУЩИЙ клип по имени
+            guard let currentClip = animationComponent.clips[animationComponent.currentClipName] else { continue }
             
+            // 2. Обновляем время
+            animationComponent.currentTime += deltaTime * animationComponent.speed
+            let time = fmod(animationComponent.currentTime, currentClip.duration)
+            
+            // 3. Считаем локальные позы (используем currentClip, а не просто clip)
             var localPose = [float4x4](repeating: .identity, count: skeletonComponent.jointPaths.count)
             for index in 0..<skeletonComponent.jointPaths.count {
-                
-                let pose = animationComponent.clip.getPose(at: time * animationComponent.speed,
-                                                           jointPath: skeletonComponent.jointPaths[index])
+                let pose = currentClip.getPose(at: time * animationComponent.speed,
+                                               jointPath: skeletonComponent.jointPaths[index])
                 ?? skeletonComponent.restTransforms[index]
                 localPose[index] = pose
             }

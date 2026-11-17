@@ -27,10 +27,8 @@ enum TextureController {
         var mtlTexture = try? textureLoader.newTexture(texture: texture, options: options)
         
         // 2. Принудительно делаем текстуру цветной (sRGB)
-        print("Texture \(name) format before: \(mtlTexture?.pixelFormat.rawValue ?? 1)")
         if isSRGB, mtlTexture?.pixelFormat == .rgba8Unorm {
             mtlTexture = mtlTexture?.makeTextureView(pixelFormat: .rgba8Unorm_srgb)
-            print("Texture \(name) converted to sRGB")
         }
         
         // 3. Кэшируем

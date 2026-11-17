@@ -45,7 +45,8 @@ class SceneManager {
                     : ModelLoader.loadPrimitive(type: .icosahedron, named: "icosahedron", manager: manager, device: device)
             } catch { print("⚠️ Scene load failed: \(error)") }
         }
-        systems = [InputSystem(), FPCameraSystem(), ShadowCameraSystem(), AnimationSystem()]
+        spawnPlayer()
+        systems = [InputSystem(), FPCameraSystem(), ShadowCameraSystem(), AnimationSystem(), PlayerMovementSystem()]
         rebuildLightBuffers(manager: manager, device: device)
     }
     
@@ -231,6 +232,29 @@ extension SceneManager {
             manager.addComponent(component: material, to: entity)
         }
     }
+}
+
+extension SceneManager {
+    func spawnPlayer() {
+            // 1. Загружаем базовую модель (в ней уже есть Idle)
+            let playerEntity = ModelLoader.loadModel(named: "Player.usdz", manager: manager, device: Renderer.device)
+            
+            // 2. Ставим на землю
+            if var transform = manager.getComponent(for: playerEntity) as TransformComponent? {
+                transform.position = [55.635025, 0, 20.192116]
+                transform.scale = 0.01
+                manager.addComponent(component: transform, to: playerEntity)
+            }
+            
+            // 3. Вешаем компонент игрока
+            let playerComp = PlayerComponent(speed: 5.0, runMultiplier: 1.5)
+            manager.addComponent(component: playerComp, to: playerEntity)
+            
+            // 4. ПОДГРУЖАЕМ ОТДЕЛЬНЫЕ АНИМАЦИИ
+            // Предположим, ты экспортировал Run.fbx и Jump.fbx и закинул в Xcode
+            ModelLoader.loadAnimation(named: "PlayerRan.usdz", for: playerEntity, manager: manager)
+            ModelLoader.loadAnimation(named: "PlayerJamp.usdz", for: playerEntity, manager: manager)
+        }
 }
 
 

@@ -51,11 +51,23 @@ class ModelLoader {
         }
         
         // Loading the Animation
-        let assetAnimation = asset.animations.objects.compactMap { $0 as? MDLPackedJointAnimation }
-        for animation in assetAnimation {
-            let animationClip = AnimationClip(animation: animation)
-            let animationComponent = AnimationComponent(clip: animationClip)
+        let assetAnimations = asset.animations.objects.compactMap { $0 as? MDLPackedJointAnimation }
+        if !assetAnimations.isEmpty {
+            var clipsDict: [String:AnimationClip] = [:]
+            var firstClipName = ""
+            
+            for(index, animation) in assetAnimations.enumerated() {
+                let animationClip = AnimationClip(animation: animation)
+                let clipName = animationClip.name.isEmpty ? "Clip_\(index)" : animationClip.name
+                clipsDict[clipName] = animationClip
+                if index == 0 { firstClipName = clipName }
+            }
+            
+            var animationComponent = AnimationComponent()
+            animationComponent.clips = clipsDict
+            animationComponent.currentClipName = firstClipName
             manager.addComponent(component: animationComponent, to: rootEntity)
+            print("✅ Загружено анимаций: \(clipsDict.count) -> \(clipsDict.keys)")
         }
         
         // 2. Каждый submesh — ребёнок корня
@@ -144,5 +156,39 @@ class ModelLoader {
         manager.addComponent(component: TransformComponent(), to: primitiveEntity)
         manager.addComponent(component: MaterialComponent(textures: textures, material: defaultMaterial), to: primitiveEntity)
         return primitiveEntity
+    }
+}
+
+extension ModelLoader {
+    /// Загружает анимацию из отдельного файла и добавляет её персонажу
+    static func loadAnimation(named fileName: String, for entity: Entity, manager: EntityManager) {
+        guard let assetURL = Bundle.main.url(forResource: fileName, withExtension: nil) else {
+            print("⚠️ Файл анимации \(fileName) не найден!")
+            return
+        }
+        
+        let asset = MDLAsset(url: assetURL)
+        let animations = asset.animations.objects.compactMap { $0 as? MDLPackedJointAnimation }
+        
+        guard !animations.isEmpty else {
+            print("⚠️ В файле \(fileName) нет анимаций!")
+            return
+        }
+        
+        // Берем AnimationComponent персонажа
+        guard var animComponent = manager.getComponent(for: entity) as AnimationComponent? else {
+            print("⚠️ У сущности нет AnimationComponent!")
+            return
+        }
+        
+        for anim in animations {
+            let clip = AnimationClip(animation: anim)
+            // Имя клипа берем из файла (например, "Run")
+            let clipName = clip.name.isEmpty ? fileName : clip.name
+            animComponent.clips[clipName] = clip
+            print("✅ Добавлена анимация: \(clipName) из \(fileName)")
+        }
+        
+        manager.addComponent(component: animComponent, to: entity)
     }
 }

@@ -782,8 +782,6 @@ final class GizmoOverlay: TiledPassOverlay {
         let camPerpLen = simd_length(camPerp)
         guard camPerpLen > 1e-4 else { return }          // камера на оси — драг невозможен
         let planeNormalN = camPerp / camPerpLen
-
-        print("plane denom =", simd_dot(planeNormalN, ray.direction))
         guard let hit0 = GizmoHitTest.rayPlaneIntersection(ray: ray,
                                                            planePoint: origin,
                                                            planeNormal: planeNormalN)
@@ -801,7 +799,6 @@ final class GizmoOverlay: TiledPassOverlay {
                                            world.columns.3.z)
 
         InputController.shared.gizmoCaptured = true
-        print("beginDrag axis=\(axis) startS=\(dragStartAxisParam) planeN=\(planeNormalN)")
     }
     
     private func updateDrag(scene: SceneManager, uniforms: Uniforms, params: Params) {
@@ -827,8 +824,6 @@ final class GizmoOverlay: TiledPassOverlay {
         let delta = sNow - dragStartAxisParam
 
         let newWorldPivot = startWorldPivot + axisDir * delta
-
-        print("sNow=\(sNow)  delta=\(delta)")
         applyWorldPivot(newWorldPivot, to: entity, scene: scene)
     }
     

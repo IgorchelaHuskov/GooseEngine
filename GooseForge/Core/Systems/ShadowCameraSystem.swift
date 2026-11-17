@@ -17,7 +17,6 @@ struct ShadowCameraSystem: System {
 
     func update(manager: EntityManager, scene: SceneManager, deltaTime: Float) {
         guard let shadowID = scene.shadowCameraID,
-              let activeCamera = manager.getComponent(for: scene.activeCameraID) as FPCameraComponent?,
               let cameraTransform = manager.getComponent(for: scene.activeCameraID) as TransformComponent?,
               let (_, sunPosition) = manager.query(LightComponent.self).first(where: { $0.a.castsShadows }) as (Entity, LightComponent)?,
               let shadowC = manager.getComponent(for: shadowID) as ShadowCameraComponent?,

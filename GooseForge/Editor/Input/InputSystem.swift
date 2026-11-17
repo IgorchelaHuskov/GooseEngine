@@ -33,12 +33,7 @@ struct InputSystem: System {
             [forwardVector.z, forwardVector.y, -forwardVector.x]
         }
         
-        let rotationAmount = deltaTime * Settings.rotationSpeed
         let input = InputController.shared
-        
-        // Стрелки — поворот yaw
-        if input.keysPressed.contains(.leftArrow)  { fpCamera.yaw -= rotationAmount }
-        if input.keysPressed.contains(.rightArrow) { fpCamera.yaw += rotationAmount }
         
         // WASD — направление
         var direction: float3 = .zero

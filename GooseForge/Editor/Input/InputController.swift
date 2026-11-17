@@ -144,7 +144,6 @@ NSEvent.addLocalMonitorForEvents(matching: [.keyUp, .keyDown]) { event in
     }
     
     func requestPick(at point: CGPoint) {
-        print("🖱 pick requested at \(point)")
         _pickRequest = point
     }
     
