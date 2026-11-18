@@ -17,14 +17,15 @@ class SceneManager {
     
     var activeCameraID: Entity!
     var shadowCameraID: Entity?
+    var tpsCameraID:    Entity!
+    var editorCameraID: Entity!
+    
     var icosahedron:    Entity!
     var selectedEntity: Entity?
     
     var allLights:      [Light] = []
     var sunLights:      [Light] = []
     var pointLights:    [Light] = []
-    
-    //let sceneLight  = SceneLighting()
     
     var size: CGSize = .zero
     
@@ -46,7 +47,16 @@ class SceneManager {
             } catch { print("⚠️ Scene load failed: \(error)") }
         }
         spawnPlayer()
-        systems = [InputSystem(), FPCameraSystem(), ShadowCameraSystem(), AnimationSystem(), PlayerMovementSystem()]
+        setupCameras()
+        
+        systems = [
+            InputSystem(),
+            FPCameraSystem(),
+            ShadowCameraSystem(),
+            AnimationSystem(),
+            PlayerMovementSystem(),
+            ThirdPersonCameraSystem()
+        ]
         rebuildLightBuffers(manager: manager, device: device)
     }
     
@@ -257,4 +267,23 @@ extension SceneManager {
         }
 }
 
-
+extension SceneManager {
+    func setupCameras() {
+        // 1. Камера Редактора (Свободный полет) 
+        editorCameraID = manager.createEntity()
+        manager.addComponent(component: FPCameraComponent(), to: editorCameraID)
+        manager.addComponent(component: TransformComponent(position: [0, 5, 10]), to: editorCameraID)
+        
+        // 2. Камера Игрока от 3-го лица
+        // Найди сущность игрока (у которой есть PlayerComponent)
+        let playerEntity = manager.query(PlayerComponent.self).first?.entity ?? 0
+        
+        tpsCameraID = manager.createEntity()
+        let tpsComp = ThirdPersonCameraComponent(targetEntity: playerEntity)
+        manager.addComponent(component: tpsComp, to: tpsCameraID)
+        manager.addComponent(component: TransformComponent(), to: tpsCameraID)
+        
+        // По умолчанию включаем TPS камеру
+        activeCameraID = tpsCameraID
+    }
+}

@@ -22,6 +22,17 @@ struct InputSystem: System {
     func update(manager: EntityManager, scene: SceneManager, size: CGSize) {}
     
     func update(manager: EntityManager, scene: SceneManager, deltaTime: Float) {
+        let input = InputController.shared
+        
+        if input.keysPressed.contains(.one) {
+            scene.activeCameraID = scene.editorCameraID
+            input.keysPressed.remove(.one)
+        }
+        if input.keysPressed.contains(.two) {
+            scene.activeCameraID = scene.tpsCameraID
+            input.keysPressed.remove(.two)
+        }
+        
         guard var fpCamera = manager.getComponent(for: scene.activeCameraID) as FPCameraComponent?,
               var transform = manager.getComponent(for: scene.activeCameraID) as TransformComponent?
         else { return }
@@ -32,8 +43,6 @@ struct InputSystem: System {
         var rightVector: float3 {
             [forwardVector.z, forwardVector.y, -forwardVector.x]
         }
-        
-        let input = InputController.shared
         
         // WASD — направление
         var direction: float3 = .zero

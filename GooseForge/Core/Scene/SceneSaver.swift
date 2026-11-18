@@ -12,12 +12,12 @@ enum SceneSaver {
     static func save(scene: SceneManager, manager: EntityManager, to url: URL) throws {
         // 1. Камера
         let camID = scene.activeCameraID!
-        guard let camTransform = manager.getComponent(for: camID) as TransformComponent?,
-              let fpCam = manager.getComponent(for: camID) as FPCameraComponent? else { return }
+        guard let camTransform = manager.getComponent(for: camID) as TransformComponent? else { return }
+        let euler = eulerYXZ(from: camTransform.rotationQuat)
         let camDTO = CameraDTO(
             name: "player",
             position: [camTransform.position.x, camTransform.position.y, camTransform.position.z],
-            rotation: [fpCam.pitch, fpCam.yaw, 0] // Возвращаем Euler для JSON
+            rotation: [euler.x, euler.y, euler.z] // Сохраняем универсальные Euler углы
         )
         
         // 2. Свет

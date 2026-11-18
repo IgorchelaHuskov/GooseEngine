@@ -56,17 +56,28 @@ class Renderer: NSObject {
     
     func updateUniforms(manager: EntityManager, scene: SceneManager ) {
         params.alphaTesting = true
-        guard let activeCameraComponent = manager.getComponent(for: scene.activeCameraID) as FPCameraComponent?,
-              let activeCameracameraTransform = manager.getComponent(for: scene.activeCameraID) as TransformComponent? else { return }
-        
-        let rotationMatrix = float4x4(activeCameracameraTransform.rotationQuat)
-            let translationMat = float4x4(translation: activeCameracameraTransform.position)
-            let viewMatrix = (translationMat * rotationMatrix).inverse
-            uniforms.viewMatrix = viewMatrix
-            uniforms.projectionMatrix = activeCameraComponent.projectionMatrix
+            let camID = scene.activeCameraID!
+            
+            guard let activeCameraTransform = manager.getComponent(for: camID) as TransformComponent? else { return }
+            
+            let rotationMatrix = float4x4(activeCameraTransform.rotationQuat)
+            let translationMat = float4x4(translation: activeCameraTransform.position)
+            uniforms.viewMatrix = (translationMat * rotationMatrix).inverse
+            
+            // УНИВЕРСАЛЬНЫЙ ПОИСК ПРОЕКЦИИ
+            if let fpCam = manager.getComponent(for: camID) as FPCameraComponent? {
+                uniforms.projectionMatrix = fpCam.projectionMatrix
+            } else if let tpsCam = manager.getComponent(for: camID) as ThirdPersonCameraComponent? {
+                uniforms.projectionMatrix = tpsCam.projectionMatrix
+            } else if let editorCam = manager.getComponent(for: camID) as FPCameraComponent? {
+                uniforms.projectionMatrix = editorCam.projectionMatrix
+            } else {
+                // Дефолт, если ничего не нашли
+                uniforms.projectionMatrix = float4x4(projectionFov: Float(70).degreesToRadians, near: 0.1, far: 1000, aspect: 1.0)
+            }
 
             params.lightCount = UInt32(scene.allLights.count)
-            params.cameraPosition = activeCameracameraTransform.position
+            params.cameraPosition = activeCameraTransform.position
         
         if let shadowID = scene.shadowCameraID,
            let shadowComponent = manager.getComponent(for: shadowID) as ShadowCameraComponent?,

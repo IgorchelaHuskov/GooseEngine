@@ -10,7 +10,11 @@ import simd
 internal import GameController
 
 struct PlayerMovementSystem: System {
-    func update(manager: EntityManager, scene: SceneManager, size: CGSize) {}
+    func update(manager: EntityManager, scene: SceneManager, size: CGSize) {
+        guard var cameraComponent = manager.getComponent(for: scene.activeCameraID) as ThirdPersonCameraComponent? else { return }
+        cameraComponent.aspect = Float(size.width / size.height)
+        manager.addComponent(component: cameraComponent, to: scene.activeCameraID)
+    }
     
     func update(manager: EntityManager, scene: SceneManager, deltaTime: Float) {
         let input = InputController.shared
@@ -22,10 +26,10 @@ struct PlayerMovementSystem: System {
             
             // 1. Получаем ввод
             var moveDirection = SIMD3<Float>.zero
-            if input.keysPressed.contains(.upArrow) { moveDirection.z += 1 }
-            if input.keysPressed.contains(.downArrow) { moveDirection.z -= 1 }
-            if input.keysPressed.contains(.leftArrow) { moveDirection.x -= 1 }
-            if input.keysPressed.contains(.rightArrow) { moveDirection.x += 1 }
+            if input.keysPressed.contains(.keyW) { moveDirection.z += 1 }
+            if input.keysPressed.contains(.keyS) { moveDirection.z -= 1 }
+            if input.keysPressed.contains(.keyA) { moveDirection.x -= 1 }
+            if input.keysPressed.contains(.keyD) { moveDirection.x += 1 }
             
             // --- СТЕЙТ-МАШИНА ---
             if input.keysPressed.contains(.spacebar) {
