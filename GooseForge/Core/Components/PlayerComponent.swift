@@ -18,4 +18,7 @@ struct PlayerComponent: Component {
     var runMultiplier: Float = 1.5
     var state: PlayerState = .idle
     var canJump: Bool = true
+    
+    // Какое именно действие сейчас проигрывается ("jump", "attack" и т.д.)
+    var currentAction: String = ""
 }

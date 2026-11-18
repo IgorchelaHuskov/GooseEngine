@@ -160,10 +160,10 @@ class ModelLoader {
 }
 
 extension ModelLoader {
-    /// Загружает анимацию из отдельного файла и добавляет её персонажу
+    /// Загружает анимацию из отдельного файла и сохраняет её под именем самого файла (без .usdz)
     static func loadAnimation(named fileName: String, for entity: Entity, manager: EntityManager) {
         guard let assetURL = Bundle.main.url(forResource: fileName, withExtension: nil) else {
-            print("⚠️ Файл анимации \(fileName) не найден!")
+            print("⚠️ Файл анимации \(fileName) не найдена!")
             return
         }
         
@@ -175,20 +175,37 @@ extension ModelLoader {
             return
         }
         
-        // Берем AnimationComponent персонажа
-        guard var animComponent = manager.getComponent(for: entity) as AnimationComponent? else {
-            print("⚠️ У сущности нет AnimationComponent!")
-            return
+        // Берем AnimationComponent персонажа (или создаем новый, если модель загружена без базовой анимации)
+        var animComponent = (manager.getComponent(for: entity) as AnimationComponent?) ?? AnimationComponent()
+        
+        // Автоматически находим индекс корневой кости (таза), если еще не найден
+        if let skelComp = manager.getComponent(for: entity) as SkeletonComponent?,
+           let hipsIdx = skelComp.jointPaths.firstIndex(where: {
+               $0.localizedCaseInsensitiveContains("hips") || $0.localizedCaseInsensitiveContains("pelvis")
+           }) {
+            animComponent.rootJointIndex = hipsIdx
         }
         
-        for anim in animations {
+        // Отрезаем расширение файла: "PlayerJump.usdz" -> "PlayerJump"
+        let baseName = URL(fileURLWithPath: fileName).deletingPathExtension().lastPathComponent
+        
+        for (index, anim) in animations.enumerated() {
             let clip = AnimationClip(animation: anim)
-            // Имя клипа берем из файла (например, "Run")
-            let clipName = clip.name.isEmpty ? fileName : clip.name
+            // Если в файле 1 анимация — называем её точно как файл ("PlayerJump").
+            // Если в файле вдруг зашито несколько анимаций — добавляем индекс ("Combo_0", "Combo_1").
+            let clipName = animations.count == 1 ? baseName : "\(baseName)_\(index)"
+            
             animComponent.clips[clipName] = clip
-            print("✅ Добавлена анимация: \(clipName) из \(fileName)")
+            
+            // Если у персонажа еще не было активной анимации, ставим эту первой
+            if animComponent.currentClipName.isEmpty {
+                animComponent.currentClipName = clipName
+            }
+            
+            print("✅ Добавлена анимация: '\(clipName)' (из \(fileName))")
         }
         
         manager.addComponent(component: animComponent, to: entity)
     }
 }
+

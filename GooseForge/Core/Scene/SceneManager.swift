@@ -246,25 +246,37 @@ extension SceneManager {
 
 extension SceneManager {
     func spawnPlayer() {
-            // 1. Загружаем базовую модель (в ней уже есть Idle)
-            let playerEntity = ModelLoader.loadModel(named: "Player.usdz", manager: manager, device: Renderer.device)
-            
-            // 2. Ставим на землю
-            if var transform = manager.getComponent(for: playerEntity) as TransformComponent? {
-                transform.position = [55.635025, 0, 20.192116]
-                transform.scale = 0.01
-                manager.addComponent(component: transform, to: playerEntity)
-            }
-            
-            // 3. Вешаем компонент игрока
-            let playerComp = PlayerComponent(speed: 5.0, runMultiplier: 1.5)
-            manager.addComponent(component: playerComp, to: playerEntity)
-            
-            // 4. ПОДГРУЖАЕМ ОТДЕЛЬНЫЕ АНИМАЦИИ
-            // Предположим, ты экспортировал Run.fbx и Jump.fbx и закинул в Xcode
-            ModelLoader.loadAnimation(named: "PlayerRan.usdz", for: playerEntity, manager: manager)
-            ModelLoader.loadAnimation(named: "PlayerJump.usdz", for: playerEntity, manager: manager)
+        // 1. Загружаем базовую модель
+        let playerEntity = ModelLoader.loadModel(named: "Player.usdz", manager: manager, device: Renderer.device)
+        
+        if var transform = manager.getComponent(for: playerEntity) as TransformComponent? {
+            transform.position = [55.635025, 0, 20.192116]
+            transform.scale = 0.01
+            manager.addComponent(component: transform, to: playerEntity)
         }
+        
+        let playerComp = PlayerComponent(speed: 5.0, runMultiplier: 1.5)
+        manager.addComponent(component: playerComp, to: playerEntity)
+        
+        // 2. Подгружаем отдельные файлы анимаций
+        ModelLoader.loadAnimation(named: "PlayerRan.usdz", for: playerEntity, manager: manager)
+        ModelLoader.loadAnimation(named: "PlayerJump.usdz", for: playerEntity, manager: manager)
+        ModelLoader.loadAnimation(named: "PlayerBoxing.usdz", for: playerEntity, manager: manager)
+        
+        // 3. Настраиваем таблицу действий в AnimationComponent
+        if var animComp = manager.getComponent(for: playerEntity) as AnimationComponent? {
+            // 1. Встроенный Idle из Player.usdz (берем первый загруженный клип)
+            let idleClip = animComp.currentClipName
+            
+            // 2. Подгруженные файлы (имена совпадают с именами файлов без .usdz!)
+            animComp.bind(action: "idle", clipName: idleClip,     loop: true,  rootMotion: false, blend: 0.2)
+            animComp.bind(action: "run",  clipName: "PlayerRan",  loop: true,  rootMotion: false, blend: 0.2)
+            animComp.bind(action: "jump", clipName: "PlayerJump", loop: false, rootMotion: true,  blend: 0.15)
+            animComp.bind(action: "attack", clipName: "PlayerBoxing", loop: false, rootMotion: false,  blend: 0.15)
+            manager.addComponent(component: animComp, to: playerEntity) 
+        }
+    }
+
 }
 
 extension SceneManager {

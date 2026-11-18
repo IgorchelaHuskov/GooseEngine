@@ -1,74 +1,38 @@
-
-
-
-
 {
+  "camera" : {
+    "name" : "player",
+    "rotation" : [
+      0.21499996,
+      1.2030002,
+      3.0821266e-09
+    ],
+    "position" : [
+      48.664307,
+      2.5667372,
+      17.506088
+    ]
+  },
+  "version" : 1,
+  "lights" : [
+      {
+        "name": "sun",
+        "type": "sun",
+        "position": [-0.36, 1, 0.53],
+        "color": [0.949, 1.0, 0.863],
+        "intensity": 1.2,
+        "radius": 1.0,
+        "castsShadows": true
+      },
+  ],
   "entities" : [
     {
-      "rotation" : [
-        -1.5256984,
-        -0.5896011,
-        0.14519918
-      ],
-      "name" : "Entity_55",
+      "name" : "Entity_23",
       "model" : "barrel.usdz",
-      "position" : [
-        57.780067,
-        0.3510124,
-        22.972158
-      ],
-      "scale" : [
-        1,
-        1,
-        1
-      ]
-    },
-    {
       "rotation" : [
         -0,
         0,
         0
       ],
-      "name" : "Entity_6",
-      "model" : "barrel.usdz",
-      "position" : [
-        58.774616,
-        0,
-        21.979136
-      ],
-      "scale" : [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "rotation" : [
-        0,
-        -1.3955526,
-        0
-      ],
-      "name" : "Entity_16",
-      "model" : "house1.usdz",
-      "position" : [
-        60.167786,
-        0,
-        17.352514
-      ],
-      "scale" : [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "rotation" : [
-        -0,
-        0,
-        0
-      ],
-      "name" : "Entity_35",
-      "model" : "barrel.usdz",
       "position" : [
         57.86224,
         0,
@@ -81,13 +45,32 @@
       ]
     },
     {
+      "name" : "Entity_63",
+      "model" : "Player.usdz",
+      "rotation" : [
+        0,
+        -1.9318228,
+        0
+      ],
+      "position" : [
+        53.222496,
+        0,
+        19.262497
+      ],
+      "scale" : [
+        0.01,
+        0.01,
+        0.01
+      ]
+    },
+    {
+      "name" : "Entity_28",
+      "model" : "pine-5.usdz",
       "rotation" : [
         -0,
         0,
         0
       ],
-      "name" : "Entity_41",
-      "model" : "pine-5.usdz",
       "position" : [
         64.63561,
         0,
@@ -100,32 +83,13 @@
       ]
     },
     {
-      "rotation" : [
-        -0,
-        0,
-        0
-      ],
-      "name" : "Entity_61",
-      "model" : "walker.usda",
-      "position" : [
-        54.947666,
-        0,
-        22.661066
-      ],
-      "scale" : [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "rotation" : [
-        0.113161005,
-        -1.6331857,
-        -0.063280076
-      ],
-      "name" : "Entity_3",
+      "name" : "Entity_33",
       "model" : "birch-3.usdz",
+      "rotation" : [
+        0.113161,
+        -1.6331857,
+        -0.06328008
+      ],
       "position" : [
         67.96467,
         0,
@@ -138,13 +102,13 @@
       ]
     },
     {
+      "name" : "Entity_36",
+      "model" : "blacksmith.usdz",
       "rotation" : [
         0,
         -0.7815391,
         0
       ],
-      "name" : "Entity_26",
-      "model" : "blacksmith.usdz",
       "position" : [
         58.32857,
         0,
@@ -157,38 +121,32 @@
       ]
     },
     {
+      "name" : "Entity_13",
+      "model" : "house1.usdz",
       "rotation" : [
-        -0,
         0,
+        -1.3955526,
         0
       ],
-      "ambientOcclusion" : 1,
-      "name" : "Entity_40",
       "position" : [
+        60.167786,
         0,
-        0,
-        0
+        17.352514
       ],
-      "opacity" : 1,
-      "baseColorTextureMap" : "grass",
-      "model" : "primitive:plane",
       "scale" : [
-        320,
         1,
-        320
-      ],
-      "roughness" : 0.5,
-      "metallic" : 0,
-      "tiling" : 48
+        1,
+        1
+      ]
     },
     {
+      "name" : "Entity_46",
+      "model" : "barrel.usdz",
       "rotation" : [
         -0,
         0,
         0
       ],
-      "name" : "Entity_11",
-      "model" : "barrel.usdz",
       "position" : [
         56.383938,
         0,
@@ -201,13 +159,76 @@
       ]
     },
     {
+      "name" : "Entity_8",
+      "model" : "barrel.usdz",
+      "rotation" : [
+        -0,
+        0,
+        0
+      ],
+      "position" : [
+        58.774616,
+        0,
+        21.979136
+      ],
+      "scale" : [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "model" : "primitive:plane",
+      "roughness" : 0.5,
+      "rotation" : [
+        -0,
+        0,
+        0
+      ],
+      "name" : "Entity_45",
+      "metallic" : 0,
+      "position" : [
+        0,
+        0,
+        0
+      ],
+      "ambientOcclusion" : 1,
+      "tiling" : 48,
+      "scale" : [
+        320,
+        1,
+        320
+      ],
+      "opacity" : 1,
+      "baseColorTextureMap" : "grass"
+    },
+    {
+      "name" : "Entity_3",
+      "model" : "barrel.usdz",
+      "rotation" : [
+        -1.5256984,
+        -0.58960176,
+        0.14519987
+      ],
+      "position" : [
+        57.780067,
+        0.3510124,
+        22.972158
+      ],
+      "scale" : [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name" : "Entity_51",
+      "model" : "bell-tower.usdz",
       "rotation" : [
         0,
         -1.5470397,
         0
       ],
-      "name" : "Entity_44",
-      "model" : "bell-tower.usdz",
       "position" : [
         60.635025,
         0,
@@ -219,31 +240,5 @@
         1
       ]
     }
-  ],
-  "lights" : [
-
-      {
-        "name": "sun",
-        "type": "sun",
-        "position": [-0.36, 1, 0.53],
-        "color": [0.949, 1.0, 0.863],
-        "intensity": 1.2,
-        "radius": 1.0,
-        "castsShadows": true
-      },
-  ],
-  "camera" : {
-    "rotation" : [
-      -0.33014366,
-      -67.62511,
-      0
-    ],
-    "name" : "player",
-    "position" : [
-      38.558315,
-      3.519046,
-      21.538523
-    ]
-  },
-  "version" : 1
+  ]
 }
