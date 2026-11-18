@@ -17,4 +17,5 @@ struct PlayerComponent: Component {
     var speed: Float = 5.0
     var runMultiplier: Float = 1.5
     var state: PlayerState = .idle
+    var canJump: Bool = true
 }

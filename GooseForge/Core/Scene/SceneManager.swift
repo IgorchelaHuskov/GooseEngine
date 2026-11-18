@@ -263,7 +263,7 @@ extension SceneManager {
             // 4. ПОДГРУЖАЕМ ОТДЕЛЬНЫЕ АНИМАЦИИ
             // Предположим, ты экспортировал Run.fbx и Jump.fbx и закинул в Xcode
             ModelLoader.loadAnimation(named: "PlayerRan.usdz", for: playerEntity, manager: manager)
-            ModelLoader.loadAnimation(named: "PlayerJamp.usdz", for: playerEntity, manager: manager)
+            ModelLoader.loadAnimation(named: "PlayerJump.usdz", for: playerEntity, manager: manager)
         }
 }
 
